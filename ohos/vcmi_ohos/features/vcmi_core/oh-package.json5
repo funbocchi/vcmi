@@ -1,0 +1,11 @@
+{
+  "name": "vcmi_core",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "Index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "libvcmi_core.so": "file:./src/main/cpp/types/libvcmi_core"
+  }
+}
