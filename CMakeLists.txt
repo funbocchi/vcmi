@@ -76,6 +76,8 @@ if(ANDROID)
 
 	set(ENABLE_STATIC_LIBS ON)
 	set(ENABLE_LAUNCHER ON)
+elseif(OHOS)
+	set(ENABLE_STATIC_LIBS ON)
 else()
 	if(IOS)
 		set(ENABLE_STATIC_LIBS ON)
@@ -90,6 +92,11 @@ if(IOS)
 	set(APP_DISPLAY_NAME "VCMI" CACHE STRING "App name on the home screen")
 endif()
 
+if(OHOS)
+	# QT launcher client replicated using ArkUI
+	set(ENABLE_LAUNCHER OFF)
+endif()
+
 if(MSVC)
 	option(ENABLE_MULTI_PROCESS_BUILDS "Enable /MP flag for MSVS solution" ON)
 	option(ENABLE_COPY_CONAN_RUNTIME_DLLS "Copy Conan runtime DLLs to target output (and run windeployqt for Qt apps) on Windows" ON)
@@ -101,6 +108,17 @@ if(IOS OR ANDROID)
 	set(ENABLE_MONOLITHIC_INSTALL OFF)
 	set(ENABLE_SINGLE_APP_BUILD ON)
 	option(ENABLE_EDITOR "Enable compilation of map editor" ON)
+	cmake_dependent_option(ENABLE_TEMPLATE_EDITOR "Enable template editor inside map editor" ON "ENABLE_EDITOR" OFF)
+	set(ENABLE_TEST OFF)
+	set(ENABLE_LOBBY OFF)
+	set(ENABLE_SERVER OFF)
+	set(COPY_CONFIG_ON_BUILD OFF)
+	set(ENABLE_DISCORD OFF)
+elseif(OHOS)
+	# Copy from the upper layer, and consider adding a lobby and server backend later.
+	set(ENABLE_MONOLITHIC_INSTALL OFF)
+	set(ENABLE_SINGLE_APP_BUILD ON)
+	option(ENABLE_EDITOR "Enable compilation of map editor" OFF)
 	cmake_dependent_option(ENABLE_TEMPLATE_EDITOR "Enable template editor inside map editor" ON "ENABLE_EDITOR" OFF)
 	set(ENABLE_TEST OFF)
 	set(ENABLE_LOBBY OFF)
@@ -735,6 +753,12 @@ elseif(ANDROID)
 	set(androidPackageSourceDir "${CMAKE_SOURCE_DIR}/android")
 	set(androidQtBuildDir "${CMAKE_BINARY_DIR}/android-build")
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${androidQtBuildDir}/${LIB_DIR}")
+elseif(OHOS)
+	set(LIB_DIR "libs/arm64-v8a")
+	set(DATA_DIR ".")
+	if(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${LIB_DIR}")
+	endif()
 else()
 	# includes lib path which determines where to install shared libraries (either /lib or /lib64)
 	include(GNUInstallDirs)
@@ -779,6 +803,10 @@ endif()
 
 if(IOS)
 	add_subdirectory(ios)
+endif()
+
+if(OHOS)
+	add_subdirectory(ohos)
 endif()
 
 add_subdirectory(lib)
@@ -838,7 +866,10 @@ endif()
 
 vcmi_install_conan_deps()
 
-if(ANDROID)
+if(OHOS)
+	# Resources are packaged into hap by hvigor, bypassing GNUInstallDirs.
+	# In the initial stage, install nothing at first, and let the hvigor side be responsible for copying config/Mods/scripts.
+elseif(ANDROID)
 	string(REPLACE ";" "\n" ANDROID_GRADLE_PROPERTIES_MULTILINE "${ANDROID_GRADLE_PROPERTIES}")
 	file(WRITE "${androidPackageSourceDir}/vcmi-app/gradle.properties" "signingRoot=${CMAKE_SOURCE_DIR}/CI/android\n${ANDROID_GRADLE_PROPERTIES_MULTILINE}")
 
@@ -855,7 +886,7 @@ else()
 endif()
 
 # that script is useless for Windows / iOS / Android
-if(NOT WIN32 AND NOT IOS AND NOT ANDROID AND NOT ENABLE_MINIMAL_LIB)
+if(NOT WIN32 AND NOT IOS AND NOT ANDROID AND NOT OHOS AND NOT ENABLE_MINIMAL_LIB)
 	install(FILES vcmibuilder DESTINATION ${BIN_DIR} PERMISSIONS
 		OWNER_WRITE OWNER_READ OWNER_EXECUTE
 					GROUP_READ GROUP_EXECUTE
@@ -1011,6 +1042,8 @@ elseif(IOS)
 	set(CPACK_ARCHIVE_FILE_EXTENSION ipa)
 	set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 	set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};app;/")
+elseif(OHOS)
+	set(CPACK_GENERATOR TGZ)
 else()
 	set(CPACK_GENERATOR TGZ)
 endif()
