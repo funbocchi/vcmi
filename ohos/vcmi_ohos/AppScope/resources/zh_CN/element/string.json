@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "英雄无敌 III"
+    },
+    {
+      "name": "app_desc",
+      "value": "VCMI 是一款用于《英雄无敌 III》的开源引擎，提供了新的和扩展的功能。要使用 VCMI，您需要拥有原始的数据文件。"
+    }
+  ]
+}
