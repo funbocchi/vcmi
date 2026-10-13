@@ -1,0 +1,12 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "libclient.so": "file:./src/main/cpp/types/libclient",
+    "@roger/sdl2":"file:../../../../../SDL/SDL-ohos/ohos_project/sdl2"
+  }
+}
